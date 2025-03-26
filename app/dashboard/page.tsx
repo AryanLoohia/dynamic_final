@@ -23,6 +23,9 @@ export default function Dashboard() {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamedImage1, setStreamedImage1] = useState<string | null>(null);
+  const [streamedImage2, setStreamedImage2] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -123,6 +126,95 @@ export default function Dashboard() {
     }
   };
 
+  const startStreaming = () => {
+    setIsStreaming(true);
+    let eventSource: EventSource | null = null;
+
+    try {
+      eventSource = new EventSource('http://localhost:5001/stream');
+      
+      eventSource.onopen = () => {
+        console.log('Stream connected');
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setStreamedImage1(data.model1_frame ? `data:image/jpeg;base64,${data.model1_frame}` : null);
+          setStreamedImage2(data.model2_frame ? `data:image/jpeg;base64,${data.model2_frame}` : null);
+        } catch (error) {
+          console.error('Error parsing stream data:', error);
+        }
+      };
+
+      eventSource.onerror = (event) => {
+        const typedEvent = event as Event;
+        console.error('Stream connection error:', typedEvent.type);
+        if (eventSource) {
+          eventSource.close();
+        }
+        setIsStreaming(false);
+      };
+
+    } catch (error) {
+      console.error('Error setting up stream:', error);
+      if (eventSource) {
+        eventSource.close();
+      }
+      setIsStreaming(false);
+    }
+  };
+
+  const stopStreaming = () => {
+    setIsStreaming(false);
+    setStreamedImage1(null);
+    setStreamedImage2(null);
+  };
+
+  // Add cleanup on component unmount
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+
+    if (isStreaming) {
+      try {
+        eventSource = new EventSource('http://localhost:5001/stream');
+        
+        eventSource.onopen = () => {
+          console.log('Stream connected');
+        };
+        
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setStreamedImage1(data.model1_frame ? `data:image/jpeg;base64,${data.model1_frame}` : null);
+            setStreamedImage2(data.model2_frame ? `data:image/jpeg;base64,${data.model2_frame}` : null);
+          } catch (error) {
+            console.error('Error parsing stream data:', error);
+          }
+        };
+
+        eventSource.onerror = (event) => {
+          const typedEvent = event as Event;
+          console.error('Stream connection error:', typedEvent.type);
+          if (eventSource) {
+            eventSource.close();
+          }
+          setIsStreaming(false);
+        };
+      } catch (error) {
+        console.error('Error in stream setup:', error);
+        setIsStreaming(false);
+      }
+    }
+
+    return () => {
+      if (eventSource) {
+        console.log('Closing stream connection');
+        eventSource.close();
+      }
+    };
+  }, [isStreaming]);
+
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
@@ -209,6 +301,72 @@ export default function Dashboard() {
         >
           {loading ? "Processing..." : "Upload"}
         </button>
+      </div>
+
+      <div className="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+        <h2 className="text-2xl font-semibold mb-4">Video Detection</h2>
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={isStreaming ? stopStreaming : startStreaming}
+            className={`px-4 py-2 rounded text-white w-full ${
+              isStreaming 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {isStreaming ? "Stop Stream" : "Start Stream"}
+          </button>
+        </div>
+
+        {/* Streaming Results */}
+        {isStreaming && (
+          <div className="w-full">
+            <div className="flex space-x-4 mb-6 border-b border-gray-700">
+              <button
+                onClick={() => setShowModel1(true)}
+                className={`pb-2 px-4 text-sm font-medium transition-colors duration-200 relative ${
+                  showModel1 
+                    ? 'text-blue-400 border-b-2 border-blue-400' 
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                Hazard Detection
+                {showModel1 && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400"></span>}
+              </button>
+              <button
+                onClick={() => setShowModel1(false)}
+                className={`pb-2 px-4 text-sm font-medium transition-colors duration-200 relative ${
+                  !showModel1 
+                    ? 'text-purple-400 border-b-2 border-purple-400' 
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                Crane Defects
+                {!showModel1 && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400"></span>}
+              </button>
+            </div>
+
+            <div className="rounded-lg overflow-hidden shadow-lg">
+              {showModel1 ? (
+                streamedImage1 && (
+                  <img 
+                    src={streamedImage1} 
+                    alt="Real-time Hazard Detection" 
+                    className="w-full"
+                  />
+                )
+              ) : (
+                streamedImage2 && (
+                  <img 
+                    src={streamedImage2} 
+                    alt="Real-time Crane Defects" 
+                    className="w-full"
+                  />
+                )
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg">

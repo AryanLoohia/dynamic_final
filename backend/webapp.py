@@ -18,6 +18,8 @@ import shutil
 import time
 import glob
 from ultralytics import YOLO
+import json
+import base64
 
 # Configure static folder properly
 app = Flask(__name__)
@@ -288,6 +290,74 @@ def video_feed(model):
 @app.route('/runs/<path:filename>')
 def serve_detected_image(filename):
     return send_from_directory('runs/', filename)
+
+@app.route('/stream', methods=['GET'])
+def video_stream():
+    def generate_frames():
+        # Initialize video capture from your source (e.g., RTSP stream, webcam, etc.)
+        # Replace this URL with your video source
+        cap = cv2.VideoCapture(0)  # Use 0 for webcam or RTSP URL for IP camera
+        
+        if not cap.isOpened():
+            print("Failed to open video capture")
+            yield f"data: {json.dumps({'error': 'Failed to open video capture'})}\n\n"
+            return
+
+        try:
+            while True:
+                success, frame = cap.read()
+                if not success:
+                    print("Failed to read frame")
+                    yield f"data: {json.dumps({'error': 'Failed to read frame'})}\n\n"
+                    break
+                
+                try:
+                    # Process frame with both models
+                    results1 = model1(frame)
+                    results2 = model2(frame)
+                    
+                    # Get processed frames
+                    processed_frame1 = results1[0].plot()
+                    processed_frame2 = results2[0].plot()
+                    
+                    # Encode frames to base64
+                    _, buffer1 = cv2.imencode('.jpg', processed_frame1)
+                    _, buffer2 = cv2.imencode('.jpg', processed_frame2)
+                    
+                    # Convert to base64
+                    base64_frame1 = base64.b64encode(buffer1).decode('utf-8')
+                    base64_frame2 = base64.b64encode(buffer2).decode('utf-8')
+                    
+                    # Create frame data
+                    frame_data = {
+                        'success': True,
+                        'model1_frame': base64_frame1,
+                        'model2_frame': base64_frame2
+                    }
+                    
+                    # Convert to JSON and yield
+                    yield f"data: {json.dumps(frame_data)}\n\n"
+                    
+                except Exception as e:
+                    print(f"Error processing frame: {str(e)}")
+                    yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                    continue
+                
+                # Add a small delay to control frame rate
+                time.sleep(0.1)
+                
+        except Exception as e:
+            print(f"Streaming error: {str(e)}")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        finally:
+            if cap is not None:
+                cap.release()
+    
+    response = Response(generate_frames(), mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Connection'] = 'keep-alive'
+    response.headers['X-Accel-Buffering'] = 'no'
+    return response
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flask app exposing yolov9 models")
