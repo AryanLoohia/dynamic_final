@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "./globals.css"; // Ensure you have a global CSS file
+import { Poppins } from 'next/font/google';
+
+
+const poppins = Poppins({ 
+  weight: ["300", "400", "700"], 
+  subsets: ["latin"], 
+  variable: "--font-poppins" // ✅ Define variable explicitly
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
       </body>

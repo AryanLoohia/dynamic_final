@@ -266,12 +266,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="bg-[linear-gradient(to_bottom,#93B48B,#87D68D,#f7fff6)] text-white min-h-screen flex flex-col items-center justify-center p-6">
       <div className="absolute top-4 left-4">
         <Link href="/">
-          <button className="px-4 py-2 bg-gray-700 rounded text-white hover:bg-gray-600">
-            Home
-          </button>
+        <button className="px-4 py-2 border-2 border-[#87D68D] text-white rounded transition duration-300 hover:bg-[#F5F5DC] hover:text-[#91818A] hover:shadow-md hover:shadow-white">
+          Home
+        </button>
+
+
         </Link>
       </div>
 
@@ -284,31 +286,33 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <h1 className="text-3xl font-bold mb-6">Object Detection Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-br from-gray-900 via-gray-800 to-black bg-clip-text text-transparent">
+        Object Detection Dashboard
+      </h1>
 
-      <div className="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
-        <h2 className="text-2xl font-semibold mb-4">Upload Image/Video for YOLOv9 Detection</h2>
+      <div className="w-full max-w-4xl bg-gradient-to-br from-[#f7fff6] via-[#e4f3e1] to-[#d0e8cb] p-6 rounded-lg shadow-2xl mb-6">
+        <h2 className="text-2xl text-[#211A1D] font-semibold mb-4">Upload Image/Video for YOLOv9 Detection</h2>
         <input 
           type="file" 
           onChange={handleFileChange} 
-          className="mb-4 text-white w-full"
+          className="mb-4 text-[#211A1D] w-full"
           accept="image/*,video/*"
         />
         <button 
           onClick={() => file && handleUpload(file)} 
-          className="px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-700 w-full"
+          className="px-4 py-2 bg-blue-600 rounded text-[#211A1D] hover:bg-blue-700 w-full"
           disabled={loading || !file}
         >
           {loading ? "Processing..." : "Upload"}
         </button>
       </div>
 
-      <div className="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
-        <h2 className="text-2xl font-semibold mb-4">Video Detection</h2>
+      <div className="w-full max-w-4xl bg-gradient-to-br from-[#f7fff6] via-[#e4f3e1] to-[#d0e8cb] p-6 rounded-lg shadow-2xl mb-6">
+        <h2 className="text-2xl  text-[#211A1D] font-semibold mb-4">Video Detection</h2>
         <div className="flex justify-between items-center mb-4">
           <button 
             onClick={isStreaming ? stopStreaming : startStreaming}
-            className={`px-4 py-2 rounded text-white w-full ${
+            className={`px-4 py-2 rounded text-[#211A1D] w-full ${
               isStreaming 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-blue-600 hover:bg-blue-700'
@@ -369,8 +373,8 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-semibold mb-6">Detection Results</h2>
+      <div className="w-full max-w-4xl bg-gradient-to-br from-[#f7fff6] via-[#e4f3e1] to-[#d0e8cb] p-6 rounded-lg shadow-2xl mb-6">
+        <h2 className="text-2xl text-[#211A1D] font-semibold mb-6">Detection Results</h2>
         
         {/* Model Selection Tabs */}
         {((model1ImagePath && model2ImagePath) || (model1VideoPath && model2VideoPath)) && (
@@ -405,7 +409,7 @@ export default function Dashboard() {
           <div className="w-full">
             {showModel1 ? (
               <div className="mb-4">
-                <h3 className="text-xl mb-4 text-blue-400 font-medium">Hazard Detection Results</h3>
+                <h3 className="text-xl mb-4 text-[#211A1D] font-medium">Hazard Detection Results</h3>
                 <div className="rounded-lg overflow-hidden shadow-lg">
                   <img 
                     src={`http://localhost:5001/runs/${model1ImagePath}`} 
@@ -416,7 +420,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="mb-4">
-                <h3 className="text-xl mb-4 text-purple-400 font-medium">Crane Defects Results</h3>
+                <h3 className="text-xl mb-4 text-[#211A1D] font-medium">Crane Defects Results</h3>
                 <div className="rounded-lg overflow-hidden shadow-lg">
                   <img 
                     src={`http://localhost:5001/runs/${model2ImagePath}`} 
