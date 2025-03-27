@@ -44,8 +44,8 @@ export default function UploadForm() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-gray-900 text-white p-6">
-      <h1 className="text-2xl mb-4">Upload Image/Video for YOLOv9 Detection</h1>
+    <div className="flex flex-col items-center justify-center p-6 text-white bg-[linear-gradient(to_bottom,#bcebcb,#87D68D,#f7fff6)]">
+      <h1 className="text-2xl font-poppins">Upload Image/Video for YOLOv9 Detection</h1>
       <input type="file" onChange={handleFileChange} className="mb-4 text-black" />
       <button onClick={handleUpload} className="px-4 py-2 bg-blue-600 rounded">
         Upload
